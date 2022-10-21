@@ -1,18 +1,21 @@
 use error::OtterError;
 use regex::Regex;
-use std::process;
+use std::{process, sync::mpsc, thread};
 use walkdir::WalkDir;
+
+use crate::job::Job;
 
 mod config;
 mod error;
+mod job;
+mod language;
 
 fn get_files_in_directory() -> Vec<String> {
     let mut files = Vec::new();
     for file in WalkDir::new(".").into_iter().filter_map(|file| file.ok()) {
-        match file.path().to_str() {
-            Some(path) => files.push(path.replace("\\", "/")),
-            None => {}
-        };
+        if let Some(path) = file.path().to_str() {
+            files.push(path.to_string());
+        }
     }
     files
 }
@@ -37,17 +40,17 @@ fn get_files(includes: &Vec<String>, excludes: &Vec<String>) -> Result<Vec<Strin
     let excludes = get_regex(excludes)?;
     Ok(get_files_in_directory()
         .iter()
-        .filter(|x| includes.iter().any(|y| y.is_match(&x)))
-        .filter(|x| !excludes.iter().any(|y| y.is_match(&x)))
+        .filter(|x| includes.iter().any(|y| y.is_match(x)))
+        .filter(|x| !excludes.iter().any(|y| y.is_match(x)))
         .map(|x| x.to_string())
         .collect())
 }
 
-fn get_lang_files(files: &Vec<String>, patterns: &Vec<String>) -> Result<Vec<String>, OtterError> {
+fn get_lang_files(files: &[String], patterns: &Vec<String>) -> Result<Vec<String>, OtterError> {
     let patterns = get_regex(patterns)?;
     Ok(files
         .iter()
-        .filter(|x| patterns.iter().any(|y| y.is_match(&x)))
+        .filter(|x| patterns.iter().any(|y| y.is_match(x)))
         .map(|x| x.to_string())
         .collect())
 }
@@ -59,11 +62,34 @@ fn otter() -> Result<(), OtterError> {
     let files = get_files(&config.includes, &config.excludes)?;
     println!("files: {}", files.len());
 
-    let cs_files: Vec<String> = get_lang_files(&files, &config.cs_files)?;
-    let go_files: Vec<String> = get_lang_files(&files, &config.go_files)?;
-    let js_files: Vec<String> = get_lang_files(&files, &config.js_files)?;
-    let py_files: Vec<String> = get_lang_files(&files, &config.py_files)?;
-    let rs_files: Vec<String> = get_lang_files(&files, &config.rs_files)?;
+    let mut jobs: Vec<Job> = Vec::new();
+    for language in language::get_languages() {
+        for file in get_lang_files(&files, config.get_files(language))? {
+            jobs.push(Job::new(
+                language,
+                file,
+                config.get_flags(language).to_string(),
+            ));
+        }
+    }
+
+    let mut handles = Vec::new();
+    let mut receivers = Vec::new();
+    for job in jobs {
+        let (sender, receiver) = mpsc::channel();
+        receivers.push(receiver);
+        handles.push(thread::spawn(move || {
+            sender.send(job.run()).unwrap();
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    for receiver in receivers {
+        println!("{}", receiver.recv().unwrap());
+    }
 
     Ok(())
 }
