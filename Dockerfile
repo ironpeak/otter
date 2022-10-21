@@ -15,6 +15,7 @@ COPY ./src/ ./src/
 RUN cargo build --release --bin otter
 
 FROM alpine:latest
+RUN apk add --update --no-cache cargo-audit
 RUN addgroup -S otter && adduser -S otter -G otter
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/otter /usr/local/bin/
 USER otter

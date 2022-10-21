@@ -6,7 +6,7 @@ use walkdir::WalkDir;
 mod config;
 mod error;
 
-fn get_files() -> Vec<String> {
+fn get_files_in_directory() -> Vec<String> {
     let mut files = Vec::new();
     for file in WalkDir::new(".").into_iter().filter_map(|file| file.ok()) {
         match file.path().to_str() {
@@ -32,7 +32,18 @@ pub fn get_regex(patterns: &Vec<String>) -> Result<Vec<Regex>, OtterError> {
     Ok(includes)
 }
 
-fn find_matches(files: &Vec<String>, patterns: &Vec<String>) -> Result<Vec<String>, OtterError> {
+fn get_files(includes: &Vec<String>, excludes: &Vec<String>) -> Result<Vec<String>, OtterError> {
+    let includes = get_regex(includes)?;
+    let excludes = get_regex(excludes)?;
+    Ok(get_files_in_directory()
+        .iter()
+        .filter(|x| includes.iter().any(|y| y.is_match(&x)))
+        .filter(|x| !excludes.iter().any(|y| y.is_match(&x)))
+        .map(|x| x.to_string())
+        .collect())
+}
+
+fn get_lang_files(files: &Vec<String>, patterns: &Vec<String>) -> Result<Vec<String>, OtterError> {
     let patterns = get_regex(patterns)?;
     Ok(files
         .iter()
@@ -45,45 +56,14 @@ fn otter() -> Result<(), OtterError> {
     let config = config::new();
     println!("config: {}", config);
 
-    let include_patterns = get_regex(&config.includes)?;
-    let exclude_patterns = get_regex(&config.excludes)?;
-    let files: Vec<String> = get_files()
-        .into_iter()
-        .filter(|x| !exclude_patterns.iter().any(|y| y.is_match(&x)))
-        .filter(|x| include_patterns.iter().any(|y| y.is_match(&x)))
-        .collect();
-
+    let files = get_files(&config.includes, &config.excludes)?;
     println!("files: {}", files.len());
 
-    let cs_files: Vec<String> = find_matches(&files, &config.cs_files)?;
-    println!(
-        "cs_files: {}",
-        serde_json::to_string_pretty(&cs_files).unwrap()
-    );
-
-    let go_files: Vec<String> = find_matches(&files, &config.go_files)?;
-    println!(
-        "go_files: {}",
-        serde_json::to_string_pretty(&go_files).unwrap()
-    );
-
-    let js_files: Vec<String> = find_matches(&files, &config.js_files)?;
-    println!(
-        "js_files: {}",
-        serde_json::to_string_pretty(&js_files).unwrap()
-    );
-
-    let py_files: Vec<String> = find_matches(&files, &config.py_files)?;
-    println!(
-        "py_files: {}",
-        serde_json::to_string_pretty(&py_files).unwrap()
-    );
-
-    let rs_files: Vec<String> = find_matches(&files, &config.rs_files)?;
-    println!(
-        "rs_files: {}",
-        serde_json::to_string_pretty(&rs_files).unwrap()
-    );
+    let cs_files: Vec<String> = get_lang_files(&files, &config.cs_files)?;
+    let go_files: Vec<String> = get_lang_files(&files, &config.go_files)?;
+    let js_files: Vec<String> = get_lang_files(&files, &config.js_files)?;
+    let py_files: Vec<String> = get_lang_files(&files, &config.py_files)?;
+    let rs_files: Vec<String> = get_lang_files(&files, &config.rs_files)?;
 
     Ok(())
 }
