@@ -80,16 +80,21 @@ impl Job {
 
     pub fn run(&self) -> JobOutput {
         match Exec::shell(&self.command).capture() {
-            Ok(data) => JobOutput {
-                command: self.command.clone(),
-                output: String::from_utf8_lossy(&data.stdout).to_string(),
-                success: match self.failure_pattern {
-                    Some(ref pattern) => !Regex::new(pattern)
-                        .unwrap()
-                        .is_match(&String::from_utf8_lossy(&data.stdout)),
-                    None => data.exit_status.success(),
-                },
-            },
+            Ok(data) => {
+                let output = format!(
+                    "{}{}",
+                    String::from_utf8_lossy(&data.stdout),
+                    String::from_utf8_lossy(&data.stderr)
+                );
+                JobOutput {
+                    command: self.command.clone(),
+                    output: output.clone(),
+                    success: match self.failure_pattern {
+                        Some(ref pattern) => !Regex::new(pattern).unwrap().is_match(&output),
+                        None => data.exit_status.success(),
+                    },
+                }
+            }
             Err(err) => JobOutput {
                 command: self.command.clone(),
                 output: format!("Error: could not spawn child process {}", err),
