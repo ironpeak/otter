@@ -47,26 +47,19 @@ ENV PATH /otter/bin/dotnet:$PATH
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 RUN apk add --update --no-cache icu-libs
 COPY --from=csharp /out /otter/bin/dotnet
-RUN dotnet --version
 # golang
 ENV PATH /otter/bin/nancy:$PATH
 RUN apk add --update --no-cache go
 COPY --from=golang /out /otter/bin/nancy
-RUN nancy --version
 # javascript
 RUN apk add --update --no-cache npm \
     && npm install --global yarn
-RUN node --version \
-    && npm --version \
-    && yarn --version
 # python
 RUN apk add --update --no-cache python3 py3-pip \
     && pip3 install pip-audit
-RUN pip-audit --version
 # rust
 ENV PATH /otter/bin/cargo_audit:$PATH
 COPY --from=rust /out /otter/bin/cargo_audit
-RUN cargo-audit --version
 # otter
 COPY --from=builder /out /usr/local/bin/
 CMD ["/usr/local/bin/otter"]
