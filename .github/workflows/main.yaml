@@ -53,6 +53,6 @@ jobs:
       - name: Clone
         run: |
           git clone --branch main --single-branch https://github.com/ironpeak/otter.git repo
-          git checkout ${{ github.sha }}
+          cd repo && git checkout ${{ github.sha }}
       - name: Test
         run: ./repo/tests/test.sh
