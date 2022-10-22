@@ -43,10 +43,8 @@ jobs:
           tags: ironpeak/otter:${{ github.sha }}
 
   test:
-    # needs: [cargo, docker]
-    runs-on: ubuntu-latest
-    # container: ironpeak/otter:${{ github.sha }}
-    container: ironpeak/otter:test
+    needs: [cargo, docker]
+    container: ironpeak/otter:${{ github.sha }}
     steps:
       - name: Setup
         run: apk add --update --no-cache git
