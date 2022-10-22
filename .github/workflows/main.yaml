@@ -40,4 +40,13 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ironpeak/otter:${{ github.sha}}
+          tags: ironpeak/otter:${{ github.sha }}
+
+  test:
+    needs: [cargo, docker]
+    runs-on: ubuntu-latest
+    container: ironpeak/otter:${{ github.sha }}
+    steps:
+      - name: Otter
+        run: otter
+        
