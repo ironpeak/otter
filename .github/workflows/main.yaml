@@ -48,7 +48,7 @@ jobs:
     container: ironpeak/otter:${{ github.sha }}
     defaults:
       run:
-        shell: ash
+        shell: /bin/ash -c {0}
     steps:
       - name: Setup
         run: apk add --update --no-cache git
