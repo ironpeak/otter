@@ -23,7 +23,6 @@ jobs:
       - run: cargo test
 
   docker:
-    needs: [cargo]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,4 +40,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ironpeak/otter:${GITHUB_SHA}
+          tags: ironpeak/otter:${{ github.sha}}
