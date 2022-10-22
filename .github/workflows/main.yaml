@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     container: ironpeak/otter:${{ github.sha }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Otter
         run: otter
         
