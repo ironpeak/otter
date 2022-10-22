@@ -1,13 +1,13 @@
 #!/bin/ash
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+BASEDIR=$(dirname "$0")
 
 # csharp
-(cd ${SCRIPT_DIR}/cs/error && otter && exit 1)
-(cd ${SCRIPT_DIR}/cs/ok && otter || exit 1)
+(cd ${BASEDIR}/cs/error && otter && exit 1)
+(cd ${BASEDIR}/cs/ok && otter || exit 1)
 
 # golang
-(cd ${SCRIPT_DIR}/go/error && otter && exit 1)
-(cd ${SCRIPT_DIR}/go/ok && otter || exit 1)
+(cd ${BASEDIR}/go/error && otter && exit 1)
+(cd ${BASEDIR}/go/ok && otter || exit 1)
 
 exit 0
