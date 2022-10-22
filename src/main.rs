@@ -117,7 +117,7 @@ fn otter() -> Result<(), OtterError> {
 fn main() {
     match otter() {
         Ok(_) => {
-            println!("Done!");
+            println!("🦦 Success 🦦");
         }
         Err(err) => {
             println!("Error: {}", err);
