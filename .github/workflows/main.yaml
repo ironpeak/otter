@@ -47,9 +47,6 @@ jobs:
     #needs: [cargo, docker]
     container: ironpeak/otter:0dd10ed10acf445d15ce45f9d64051a92a096e3a
     #container: ironpeak/otter:${{ github.sha }}
-    defaults:
-      run:
-        shell: /bin/ash -c {0}
     steps:
       - name: Setup
         run: apk add --update --no-cache git
