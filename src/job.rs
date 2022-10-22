@@ -34,7 +34,7 @@ impl Job {
         Ok(match language {
             Language::CSharp => Job {
                 command: format!(
-                    "cd {} && dotnet list package --vulnerable {}",
+                    "cd {} && dotnet restore --locked-mode && dotnet list package --vulnerable {}",
                     get_directory(&file).as_deref().unwrap_or("."),
                     flags
                 ),
