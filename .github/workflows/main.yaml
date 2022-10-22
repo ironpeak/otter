@@ -54,5 +54,19 @@ jobs:
         run: |
           git clone --branch main --single-branch https://github.com/ironpeak/otter.git repo
           cd repo && git checkout ${{ github.sha }}
-      - name: Test
-        run: ./repo/tests/test.sh
+      - name: CSharp OK
+        run: |
+          cd repo/cs/ok
+          otter
+      - name: CSharp Error
+        run: |
+          cd repo/cs/error
+          otter
+      - name: Golang OK
+        run: |
+          cd repo/go/ok
+          otter
+      - name: Golang Error
+        run: |
+          cd repo/go/error
+          otter
