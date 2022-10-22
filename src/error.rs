@@ -8,4 +8,6 @@ pub enum OtterError {
     RegexError { pattern: String },
     #[error("could not deduce filetype '{file}'")]
     UnknownFile { file: String },
+    #[error("vulnerability found in one or more files")]
+    Vulnerability,
 }

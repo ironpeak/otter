@@ -61,6 +61,7 @@ fn otter() -> Result<(), OtterError> {
 
     let files = get_files(&config.includes, &config.excludes)?;
     println!("files: {}", files.len());
+    println!("files: {:?}", files);
 
     let mut jobs: Vec<Job> = Vec::new();
     for language in language::get_languages() {
@@ -87,8 +88,27 @@ fn otter() -> Result<(), OtterError> {
         handle.join().unwrap();
     }
 
-    for receiver in receivers {
-        println!("{}", receiver.recv().unwrap());
+    let results = receivers
+        .into_iter()
+        .map(|x| x.recv().unwrap())
+        .collect::<Vec<_>>();
+    for result in results.iter().filter(|x| x.success) {
+        println!("{}", result);
+    }
+    for result in results.iter().filter(|x| !x.success) {
+        println!("{}", result);
+    }
+
+    println!("📖 === Summary === 📖");
+    for result in results.iter().filter(|x| x.success) {
+        println!("✅ {}", result.command);
+    }
+    for result in results.iter().filter(|x| !x.success) {
+        println!("⛔ {}", result.command);
+    }
+
+    if results.iter().any(|x| !x.success) {
+        return Err(OtterError::Vulnerability);
     }
 
     Ok(())

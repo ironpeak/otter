@@ -38,11 +38,11 @@ pub(crate) fn new() -> Config {
         includes: get_config_list("INCLUDES", "."),
         excludes: get_config_list("EXCLUDES", ""),
 
-        cs_files: get_config_list("CS_FILES", "package-lock.json"),
-        go_files: get_config_list("GO_FILES", "go.mod,go.sum"),
-        js_files: get_config_list("JS_FILES", "package-lock.json,yarn.lock"),
-        py_files: get_config_list("PY_FILES", "requirements.txt"),
-        rs_files: get_config_list("RS_FILES", "Cargo.lock"),
+        cs_files: get_config_list("CS_FILES", "/packages.lock.json$"),
+        go_files: get_config_list("GO_FILES", "/go.mod$,/go.sum$"),
+        js_files: get_config_list("JS_FILES", "/package-lock.json$,/yarn.lock$"),
+        py_files: get_config_list("PY_FILES", "/requirements.txt$"),
+        rs_files: get_config_list("RS_FILES", "/Cargo.lock$"),
 
         cs_flags: get_config("CS_FLAGS", "--include-transitive"),
         go_flags: get_config("GO_FLAGS", ""),

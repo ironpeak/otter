@@ -13,7 +13,7 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 COPY ./src/ ./src/
 RUN cargo build --release --bin otter
-RUN mv /app/target/x86_64-unknown-linux-musl/release/otter /out
+RUN mkdir /out && mv /app/target/x86_64-unknown-linux-musl/release/otter /out/otter
 
 FROM golang:alpine AS csharp
 RUN apk add --update --no-cache \
@@ -42,6 +42,7 @@ RUN mkdir /out && mv /root/.cargo/bin/cargo-audit /out/cargo-audit
 FROM alpine:latest
 # csharp
 ENV PATH /otter/bin/dotnet:$PATH
+ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 RUN apk add --update --no-cache icu-libs
 COPY --from=csharp /out /otter/bin/dotnet
 RUN dotnet --version
@@ -67,4 +68,9 @@ RUN cargo-audit --version
 RUN addgroup -S otter && adduser -S otter -G otter
 COPY --from=builder /out /usr/local/bin/
 USER otter
+
+WORKDIR /app
+COPY tests tests
+RUN otter && exit 1
+
 CMD ["/usr/local/bin/otter"]
