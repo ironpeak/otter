@@ -82,7 +82,7 @@ impl Job {
         match Exec::shell(&self.command).capture() {
             Ok(data) => {
                 let output = format!(
-                    "{}{}",
+                    "{}\n{}",
                     String::from_utf8_lossy(&data.stdout),
                     String::from_utf8_lossy(&data.stderr)
                 );
