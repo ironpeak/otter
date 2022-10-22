@@ -45,7 +45,7 @@ pub(crate) fn new() -> Config {
         rs_files: get_config_list("RS_FILES", "/Cargo.lock$"),
 
         cs_flags: get_config("CS_FLAGS", "--include-transitive"),
-        go_flags: get_config("GO_FLAGS", ""),
+        go_flags: get_config("GO_FLAGS", "--skip-update-check"),
         js_flags: get_config("JS_FLAGS", "--frozen-lockfile --production"),
         py_flags: get_config("PY_FLAGS", ""),
         rs_flags: get_config("RS_FLAGS", ""),

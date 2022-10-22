@@ -32,8 +32,10 @@ RUN wget https://dot.net/v1/dotnet-install.sh -O install.sh \
 RUN mv /root/.dotnet /out
 
 FROM golang:alpine AS golang
-RUN go install golang.org/x/vuln/cmd/govulncheck@latest
-RUN mkdir /out && mv /go/bin/govulncheck /out/govulncheck
+RUN apk add --update --no-cache git make
+RUN git clone https://github.com/sonatype-nexus-community/nancy.git
+RUN cd nancy && make build
+RUN mkdir /out && mv nancy/nancy /out/nancy
 
 FROM clux/muslrust:stable AS rust
 RUN cargo install cargo-audit
@@ -47,9 +49,10 @@ RUN apk add --update --no-cache icu-libs
 COPY --from=csharp /out /otter/bin/dotnet
 RUN dotnet --version
 # golang
-ENV PATH /otter/bin/govulncheck:$PATH
-COPY --from=golang /out /otter/bin/govulncheck
-RUN which govulncheck
+ENV PATH /otter/bin/nancy:$PATH
+RUN apk add --update --no-cache go
+COPY --from=golang /out /otter/bin/nancy
+RUN nancy --version
 # javascript
 RUN apk add --update --no-cache npm \
     && npm install --global yarn
@@ -68,9 +71,4 @@ RUN cargo-audit --version
 RUN addgroup -S otter && adduser -S otter -G otter
 COPY --from=builder /out /usr/local/bin/
 USER otter
-
-WORKDIR /app
-COPY tests tests
-RUN otter && exit 1
-
 CMD ["/usr/local/bin/otter"]

@@ -1,6 +1,6 @@
 use error::OtterError;
 use regex::Regex;
-use std::{process, sync::mpsc, thread};
+use std::{collections::HashSet, process, sync::mpsc, thread};
 use walkdir::WalkDir;
 
 use crate::job::Job;
@@ -61,12 +61,11 @@ fn otter() -> Result<(), OtterError> {
 
     let files = get_files(&config.includes, &config.excludes)?;
     println!("files: {}", files.len());
-    println!("files: {:?}", files);
 
-    let mut jobs: Vec<Job> = Vec::new();
+    let mut jobs: HashSet<Job> = HashSet::new();
     for language in language::get_languages() {
         for file in get_lang_files(&files, config.get_files(language))? {
-            jobs.push(Job::new(
+            jobs.insert(Job::new(
                 language,
                 file,
                 config.get_flags(language).to_string(),

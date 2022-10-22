@@ -7,7 +7,7 @@ Otter is a aggregation of multiple dependency scanners that automatically find v
 | Language   | Tool                                                                          |
 | ---------- | ----------------------------------------------------------------------------- |
 | C#         | [dotnet](https://github.com/dotnet/sdk)                                       |
-| Go         | [govulncheck](https://github.com/golang/vuln)                                 |
+| Go         | [nancy](https://github.com/sonatype-nexus-community/nancy)                    |
 | JavaScript | [npm](https://github.com/npm/cli) and [yarn](https://github.com/yarnpkg/yarn) |
 | Python     | [pip-audit](https://github.com/pypa/pip-audit)                                |
 | Rust       | [cargo-audit](https://github.com/RustSec/rustsec/tree/main/cargo-audit)       |
@@ -28,10 +28,10 @@ Otter is a aggregation of multiple dependency scanners that automatically find v
 
 ### Golang
 
-| Env            | Description                                            | Default             |
-| -------------- | ------------------------------------------------------ | ------------------- |
-| OTTER_GO_FILES | Comma seperated regex patterns to match files against. | `/go.mod$,/go.sum$` |
-| OTTER_GO_FLAGS | Flags that are appended at the end of the command.     | None                |
+| Env            | Description                                            | Default               |
+| -------------- | ------------------------------------------------------ | --------------------- |
+| OTTER_GO_FILES | Comma seperated regex patterns to match files against. | `/go.mod$,/go.sum$`   |
+| OTTER_GO_FLAGS | Flags that are appended at the end of the command.     | `--skip-update-check` |
 
 ### JavaScript
 

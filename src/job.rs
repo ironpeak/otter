@@ -1,14 +1,14 @@
-use std::{fmt::Display, path::PathBuf, process::Command};
+use std::{fmt::Display, path::PathBuf};
 
 use regex::Regex;
+use subprocess::Exec;
 
 use crate::{error::OtterError, language::Language};
 
+#[derive(Eq, Hash, PartialEq)]
 pub struct Job {
-    directory: Option<String>,
-    program: String,
-    args: Vec<String>,
-    failure: Option<Regex>,
+    command: String,
+    failure_pattern: Option<String>,
 }
 
 fn get_filename(path: &str) -> Option<String> {
@@ -33,79 +33,65 @@ impl Job {
     pub fn new(language: Language, file: String, flags: String) -> Result<Job, OtterError> {
         Ok(match language {
             Language::CSharp => Job {
-                directory: get_directory(&file),
-                program: "dotnet".to_string(),
-                args: format!("list package --vulnerable {}", flags)
-                    .split(' ')
-                    .filter(|s| !s.is_empty())
-                    .map(|s| s.to_string())
-                    .collect(),
-                failure: Some(Regex::new("has the following vulnerable packages").unwrap()),
+                command: format!(
+                    "cd {} && dotnet list package --vulnerable {}",
+                    get_directory(&file).as_deref().unwrap_or("."),
+                    flags
+                ),
+                failure_pattern: Some("has the following vulnerable packages".to_string()),
             },
             Language::Go => Job {
-                directory: get_directory(&file),
-                program: "govulncheck".to_string(),
-                args: vec!["./...".to_string()],
-                failure: None,
+                command: format!(
+                    "cd {} && go list -json -m all | nancy sleuth {}",
+                    get_directory(&file).as_deref().unwrap_or("."),
+                    flags
+                ),
+                failure_pattern: None,
             },
             Language::JavaScript => match get_filename(&file).as_deref() {
                 Some("yarn.lock") => Job {
-                    directory: get_directory(&file),
-                    program: "yarn".to_string(),
-                    args: vec!["audit".to_string()],
-                    failure: None,
+                    command: format!(
+                        "cd {} && yarn audit {}",
+                        get_directory(&file).as_deref().unwrap_or("."),
+                        flags
+                    ),
+                    failure_pattern: None,
                 },
                 Some(_) => Job {
-                    directory: get_directory(&file),
-                    program: "npm".to_string(),
-                    args: vec!["audit".to_string()],
-                    failure: None,
+                    command: format!(
+                        "cd {} && npm audit {}",
+                        get_directory(&file).as_deref().unwrap_or("."),
+                        flags
+                    ),
+                    failure_pattern: None,
                 },
                 None => return Err(OtterError::UnknownFile { file }),
             },
             Language::Python => Job {
-                directory: None,
-                program: "pip-audit".to_string(),
-                args: format!("--requirement {} {}", file, flags)
-                    .split(' ')
-                    .filter(|s| !s.is_empty())
-                    .map(|s| s.to_string())
-                    .collect(),
-                failure: None,
+                command: format!("pip-audit --requirement {} {}", file, flags),
+                failure_pattern: None,
             },
             Language::Rust => Job {
-                directory: None,
-                program: "cargo-audit".to_string(),
-                args: format!("audit --file {} {}", file, flags)
-                    .split(' ')
-                    .filter(|s| !s.is_empty())
-                    .map(|s| s.to_string())
-                    .collect(),
-                failure: None,
+                command: format!("cargo-audit audit --file {} {}", file, flags),
+                failure_pattern: None,
             },
         })
     }
 
     pub fn run(&self) -> JobOutput {
-        let mut command = format!("{} {}", self.program, self.args.join(" "));
-        let mut cmd = Command::new(&self.program);
-        if let Some(directory) = &self.directory {
-            command = format!("cd {} && {}", directory, command);
-            cmd.current_dir(directory);
-        }
-        match cmd.args(&self.args).output() {
-            Ok(output) => JobOutput {
-                command: command,
-                output: String::from_utf8_lossy(&output.stdout).to_string(),
-                success: match self.failure {
-                    Some(ref failure) => {
-                        !failure.is_match(&String::from_utf8_lossy(&output.stdout).to_string())
-                    }
-                    None => output.status.success(),
+        match Exec::shell(&self.command).capture() {
+            Ok(data) => JobOutput {
+                command: self.command.clone(),
+                output: String::from_utf8_lossy(&data.stdout).to_string(),
+                success: match self.failure_pattern {
+                    Some(ref pattern) => !Regex::new(pattern)
+                        .unwrap()
+                        .is_match(&String::from_utf8_lossy(&data.stdout)),
+                    None => data.exit_status.success(),
                 },
             },
             Err(err) => JobOutput {
-                command: command,
+                command: self.command.clone(),
                 output: format!("Error: could not spawn child process {}", err),
                 success: false,
             },
