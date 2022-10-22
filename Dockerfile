@@ -68,7 +68,5 @@ ENV PATH /otter/bin/cargo_audit:$PATH
 COPY --from=rust /out /otter/bin/cargo_audit
 RUN cargo-audit --version
 # otter
-RUN addgroup -S otter && adduser -S otter -G otter
 COPY --from=builder /out /usr/local/bin/
-USER otter
 CMD ["/usr/local/bin/otter"]
