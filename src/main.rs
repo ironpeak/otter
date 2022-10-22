@@ -69,7 +69,7 @@ fn otter() -> Result<(), OtterError> {
                 language,
                 file,
                 config.get_flags(language).to_string(),
-            ));
+            )?);
         }
     }
 

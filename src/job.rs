@@ -1,6 +1,6 @@
-use std::{fmt::Display, process::Command};
+use std::{fmt::Display, path::PathBuf, process::Command};
 
-use crate::language::Language;
+use crate::{error::OtterError, language::Language};
 
 pub struct Job {
     directory: Option<String>,
@@ -8,28 +8,62 @@ pub struct Job {
     args: Vec<String>,
 }
 
+fn get_filename(path: &str) -> Option<String> {
+    let path = PathBuf::from(path);
+    let filename = path.file_name();
+    match filename {
+        Some(filename) => filename.to_str().map(|x| x.to_string()),
+        None => None,
+    }
+}
+
+fn get_directory(path: &str) -> Option<String> {
+    let path = PathBuf::from(path);
+    let dir = path.parent();
+    match dir {
+        Some(dir) => dir.to_str().map(|x| x.to_string()),
+        None => None,
+    }
+}
+
 impl Job {
-    pub fn new(language: Language, file: String, flags: String) -> Job {
-        match language {
+    pub fn new(language: Language, file: String, flags: String) -> Result<Job, OtterError> {
+        Ok(match language {
             Language::CSharp => Job {
-                directory: Some(file),
-                program: "exit".to_string(),
-                args: vec!["1".to_string()],
+                directory: get_directory(&file),
+                program: "dotnet".to_string(),
+                args: format!("list package --vulnerable {}", flags)
+                    .split(' ')
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.to_string())
+                    .collect(),
             },
             Language::Go => Job {
-                directory: Some(file),
-                program: "exit".to_string(),
-                args: vec!["1".to_string()],
+                directory: get_directory(&file),
+                program: "govulncheck".to_string(),
+                args: vec!["./...".to_string()],
             },
-            Language::JavaScript => Job {
-                directory: Some(file),
-                program: "exit".to_string(),
-                args: vec!["1".to_string()],
+            Language::JavaScript => match get_filename(&file).as_deref() {
+                Some("yarn.lock") => Job {
+                    directory: get_directory(&file),
+                    program: "yarn".to_string(),
+                    args: vec!["audit".to_string()],
+                },
+                Some(_) => Job {
+                    directory: get_directory(&file),
+                    program: "npm".to_string(),
+                    args: vec!["audit".to_string()],
+                },
+                None => return Err(OtterError::UnknownFile { file }),
             },
             Language::Python => Job {
-                directory: Some(file),
-                program: "exit".to_string(),
-                args: vec!["1".to_string()],
+                directory: None,
+                program: "pip-audit".to_string(),
+                args: format!("--requirement {} {}", file, flags)
+                    .split(' ')
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.to_string())
+                    .collect(),
             },
             Language::Rust => Job {
                 directory: None,
@@ -40,11 +74,15 @@ impl Job {
                     .map(|s| s.to_string())
                     .collect(),
             },
-        }
+        })
     }
 
     pub fn run(&self) -> JobOutput {
-        match Command::new(&self.program).args(&self.args).output() {
+        let mut cmd = Command::new(&self.program);
+        if let Some(directory) = &self.directory {
+            cmd.current_dir(directory);
+        }
+        match cmd.args(&self.args).output() {
             Ok(output) => JobOutput {
                 command: format!("{} {}", self.program, self.args.join(" ")),
                 output: String::from_utf8_lossy(&output.stdout).to_string(),

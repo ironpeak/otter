@@ -6,4 +6,6 @@ use thiserror::Error;
 pub enum OtterError {
     #[error("could not parse pattern '{pattern}'")]
     RegexError { pattern: String },
+    #[error("could not deduce filetype '{file}'")]
+    UnknownFile { file: String },
 }

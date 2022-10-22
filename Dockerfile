@@ -13,17 +13,58 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 COPY ./src/ ./src/
 RUN cargo build --release --bin otter
+RUN mv /app/target/x86_64-unknown-linux-musl/release/otter /out
 
-FROM clux/muslrust:stable AS cargo-audit
-RUN cargo install cargo-audit
+FROM golang:alpine AS csharp
+RUN apk add --update --no-cache \
+    bash \ 
+    icu-libs \ 
+    krb5-libs \ 
+    libgcc \ 
+    libintl \ 
+    libssl1.1 \ 
+    libstdc++ \ 
+    wget \ 
+    zlib
+RUN wget https://dot.net/v1/dotnet-install.sh -O install.sh \
+    && chmod +x install.sh \
+    && ./install.sh
+RUN mv /root/.dotnet /out
 
-FROM golang:alpine AS govulncheck
+FROM golang:alpine AS golang
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
+RUN mkdir /out && mv /go/bin/govulncheck /out/govulncheck
+
+FROM clux/muslrust:stable AS rust
+RUN cargo install cargo-audit
+RUN mkdir /out && mv /root/.cargo/bin/cargo-audit /out/cargo-audit
 
 FROM alpine:latest
+# csharp
+ENV PATH /otter/bin/dotnet:$PATH
+RUN apk add --update --no-cache icu-libs
+COPY --from=csharp /out /otter/bin/dotnet
+RUN dotnet --version
+# golang
+ENV PATH /otter/bin/govulncheck:$PATH
+COPY --from=golang /out /otter/bin/govulncheck
+RUN which govulncheck
+# javascript
+RUN apk add --update --no-cache npm \
+    && npm install --global yarn
+RUN node --version \
+    && npm --version \
+    && yarn --version
+# python
+RUN apk add --update --no-cache python3 py3-pip \
+    && pip3 install pip-audit
+RUN pip-audit --version
+# rust
+ENV PATH /otter/bin/cargo_audit:$PATH
+COPY --from=rust /out /otter/bin/cargo_audit
+RUN cargo-audit --version
+# otter
 RUN addgroup -S otter && adduser -S otter -G otter
-COPY --from=cargo-audit /root/.cargo/bin/cargo-audit /usr/local/bin/
-COPY --from=govulncheck /go/bin/govulncheck /usr/local/bin/
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/otter /usr/local/bin/
+COPY --from=builder /out /usr/local/bin/
 USER otter
 CMD ["/usr/local/bin/otter"]
