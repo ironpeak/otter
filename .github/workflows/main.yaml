@@ -49,7 +49,7 @@ jobs:
     #container: ironpeak/otter:${{ github.sha }}
     steps:
       - name: Setup
-        run: apk add --update --no-cache git
+        run: apk add --update --no-cache bash git
       - name: Clone
         run: |
           git clone --branch main --single-branch https://github.com/ironpeak/otter.git repo
