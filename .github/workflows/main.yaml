@@ -44,12 +44,11 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    #needs: [cargo, docker]
-    container: ironpeak/otter:0dd10ed10acf445d15ce45f9d64051a92a096e3a
-    #container: ironpeak/otter:${{ github.sha }}
+    needs: [cargo, docker]
+    container: ironpeak/otter:${{ github.sha }}
     steps:
       - name: Setup
-        run: apk add --update --no-cache bash git
+        run: apk add --update --no-cache git
       - name: Clone
         run: |
           git clone --branch main --single-branch https://github.com/ironpeak/otter.git repo
