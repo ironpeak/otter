@@ -12,4 +12,8 @@ echo "Running Tests"
 (cd ${BASEDIR}/go/error && otter && exit 1)
 (cd ${BASEDIR}/go/ok && otter || exit 1)
 
+# javascript
+(cd ${BASEDIR}/js/error && otter && exit 1)
+(cd ${BASEDIR}/js/ok && otter || exit 1)
+
 exit 0
