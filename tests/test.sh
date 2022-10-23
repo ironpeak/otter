@@ -15,7 +15,7 @@ otter || exit 1
 cd ${BASEDIR}/go/error
 otter && exit 1
 
-(cd ${BASEDIR}/go/ok
+cd ${BASEDIR}/go/ok
 otter || exit 1
 
 exit 0
