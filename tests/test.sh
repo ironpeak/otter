@@ -16,4 +16,8 @@ echo "Running Tests"
 (cd ${BASEDIR}/js/error && otter && exit 1)
 (cd ${BASEDIR}/js/ok && otter || exit 1)
 
+# python
+(cd ${BASEDIR}/py/error && otter && exit 1)
+(cd ${BASEDIR}/py/ok && otter || exit 1)
+
 exit 0
