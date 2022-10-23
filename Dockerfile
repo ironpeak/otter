@@ -1,6 +1,6 @@
 FROM clux/muslrust:stable AS chef
 USER root
-RUN cargo install cargo-chef
+RUN cargo install cargo-chef --locked
 WORKDIR /app
 
 FROM chef AS planner
@@ -11,8 +11,9 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
+COPY ./Cargo.toml ./Cargo.toml
 COPY ./src/ ./src/
-RUN cargo build --release --bin otter
+RUN cargo build --target x86_64-unknown-linux-musl --release --bin otter
 RUN mkdir /out && mv /app/target/x86_64-unknown-linux-musl/release/otter /out/otter
 
 FROM golang:alpine AS csharp

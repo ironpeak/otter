@@ -51,4 +51,7 @@ jobs:
           git clone --branch main --single-branch https://github.com/ironpeak/otter.git repo
           (cd repo && git checkout ${{ github.sha }})
       - name: Test
-        run: ./repo/tests/test.sh
+        run: |
+          ls
+          pwd
+          ./repo/tests/test.sh
