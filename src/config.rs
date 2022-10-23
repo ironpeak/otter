@@ -47,7 +47,7 @@ pub(crate) fn new() -> Config {
         cs_flags: get_config("CS_FLAGS", "--include-transitive"),
         go_flags: get_config("GO_FLAGS", "--skip-update-check"),
         js_flags: get_config("JS_FLAGS", "--frozen-lockfile --production"),
-        py_flags: get_config("PY_FLAGS", ""),
+        py_flags: get_config("PY_FLAGS", "--cache-dir=/root/.cache/pip"),
         rs_flags: get_config("RS_FLAGS", ""),
     }
 }

@@ -42,10 +42,10 @@ Otter is a aggregation of multiple dependency scanners that automatically find v
 
 ### Python
 
-| Env            | Description                                            | Default              |
-| -------------- | ------------------------------------------------------ | -------------------- |
-| OTTER_PY_FILES | Comma seperated regex patterns to match files against. | `/requirements.txt$` |
-| OTTER_PY_FLAGS | Flags that are appended at the end of the command.     | None                 |
+| Env            | Description                                            | Default                        |
+| -------------- | ------------------------------------------------------ | ------------------------------ |
+| OTTER_PY_FILES | Comma seperated regex patterns to match files against. | `/requirements.txt$`           |
+| OTTER_PY_FLAGS | Flags that are appended at the end of the command.     | `--cache-dir=/root/.cache/pip` |
 
 ### Rust
 
