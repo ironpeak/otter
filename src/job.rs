@@ -112,7 +112,6 @@ pub struct JobOutput {
 
 impl Display for JobOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.output)?;
         write!(
             f,
             "{}",
@@ -122,6 +121,7 @@ impl Display for JobOutput {
             }
         )?;
         write!(f, " {}", self.command)?;
+        writeln!(f, "{}", self.output)?;
         Ok(())
     }
 }

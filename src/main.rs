@@ -114,7 +114,7 @@ fn otter() -> Result<(), OtterError> {
 }
 
 fn main() {
-    println!("🦦 Running 🦦");
+    println!("🦦 Starting 🦦");
     match otter() {
         Ok(_) => {
             println!("🦦 Success 🦦");
