@@ -25,6 +25,6 @@ echo "Running Tests"
 (cd ${BASEDIR}/rs/ok && otter) || exit 1
 
 # all
-(cd ${BASEDIR} && otter) || exit 1
+(cd ${BASEDIR} && otter) && exit 1
 
 exit 0
