@@ -54,4 +54,5 @@ jobs:
         run: |
           ls
           pwd
+          find .
           ./repo/tests/test.sh
