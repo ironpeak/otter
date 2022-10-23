@@ -56,17 +56,13 @@ jobs:
           (cd repo && git checkout ${{ github.sha }})
       - name: CSharp OK
         run: |
-          cd repo/cs/ok
-          otter
+          (cd repo/tests/cs/ok && otter)
       - name: CSharp Error
         run: |
-          cd repo/cs/error
-          otter
+          (cd repo/tests/cs/error && otter)
       - name: Golang OK
         run: |
-          cd repo/go/ok
-          otter
+          (cd repo/tests/go/ok && otter)
       - name: Golang Error
         run: |
-          cd repo/go/error
-          otter
+          (cd repo/tests/go/error && otter)
