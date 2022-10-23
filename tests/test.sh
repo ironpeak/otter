@@ -6,16 +6,16 @@ echo "Running Tests"
 
 # csharp
 cd ${BASEDIR}/cs/error
-otter && exit 1
+otter
 
 cd ${BASEDIR}/cs/ok
-otter || exit 1
+otter
 
 # golang
 cd ${BASEDIR}/go/error
-otter && exit 1
+otter
 
 cd ${BASEDIR}/go/ok
-otter || exit 1
+otter
 
 exit 0
